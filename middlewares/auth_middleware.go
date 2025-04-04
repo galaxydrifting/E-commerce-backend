@@ -1,18 +1,25 @@
 package middlewares
 
 import (
+	"e-commerce/configs"
+	"e-commerce/models"
 	"net/http"
 	"os"
 	"strings"
-
-	"e-commerce/configs"
-	"e-commerce/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+type AuthMiddleware struct {
+	db *configs.Database
+}
+
+func NewAuthMiddleware(db *configs.Database) *AuthMiddleware {
+	return &AuthMiddleware{db: db}
+}
+
+func (am *AuthMiddleware) Handle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -40,7 +47,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		var user models.User
-		if err := configs.DB.First(&user, claims["sub"]).Error; err != nil {
+		if err := am.db.DB.First(&user, claims["sub"]).Error; err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
 			c.Abort()
 			return
