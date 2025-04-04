@@ -96,7 +96,7 @@ func TestLogin(t *testing.T) {
 		{
 			name:     "successful login",
 			email:    "test@example.com",
-			password: "password1234",
+			password: "password123",
 			wantErr:  false,
 		},
 		{
