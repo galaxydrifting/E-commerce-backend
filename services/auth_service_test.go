@@ -50,7 +50,7 @@ func TestRegister(t *testing.T) {
 			name:     "successful registration",
 			userName: "Test User",
 			email:    "test@example.com",
-			password: "password1234",
+			password: "password123",
 			wantErr:  false,
 		},
 		{
@@ -96,7 +96,7 @@ func TestLogin(t *testing.T) {
 		{
 			name:     "successful login",
 			email:    "test@example.com",
-			password: "password123",
+			password: "password1234",
 			wantErr:  false,
 		},
 		{
