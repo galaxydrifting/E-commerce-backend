@@ -16,13 +16,10 @@ import (
 	"log"
 	"os"
 
-	"e-commerce/configs"
-	"e-commerce/controllers"
+	"e-commerce/di"
 	"e-commerce/docs"
 	"e-commerce/migrations"
-	"e-commerce/repository"
 	"e-commerce/routes"
-	"e-commerce/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -40,20 +37,19 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	configs.ConnectDB(envFile)
+	// Initialize dependency injection container
+	container, err := di.Initialize(envFile)
+	if err != nil {
+		log.Fatal("Error initializing container:", err)
+	}
 
-	// Run database migrations
-	migrations.Migrate()
+	// Run database migrations with the injected DB instance
+	migrations.Migrate(container.DB)
 
 	r := gin.Default()
 
-	// Initialize repositories and services
-	userRepo := repository.NewGormUserRepository(configs.GetDB())
-	authService := services.NewAuthService(userRepo)
-	authController := controllers.NewAuthController(authService)
-
-	// Setup routes
-	routes.SetupAuthRoutes(r, authController)
+	// Setup routes using the container
+	routes.SetupAuthRoutes(r, container.AuthController)
 
 	// Swagger documentation route
 	docs.SwaggerInfo.BasePath = "/api/v1"

@@ -5,15 +5,16 @@ go 1.23.0
 toolchain go1.23.7
 
 require (
-	github.com/gin-gonic/gin v1.10.0
-	github.com/golang-jwt/jwt/v5 v5.0.0
+	github.com/gin-gonic/gin v1.9.1
+	github.com/golang-jwt/jwt/v5 v5.2.2
+	github.com/google/wire v0.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
-	github.com/swaggo/swag v1.16.4
+	github.com/swaggo/swag v1.8.12
 	golang.org/x/crypto v0.36.0
-	gorm.io/driver/postgres v1.5.2
-	gorm.io/gorm v1.25.4
+	gorm.io/driver/postgres v1.5.4
+	gorm.io/gorm v1.25.5
 )
 
 require (
@@ -33,7 +34,7 @@ require (
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/pgx/v5 v5.3.1 // indirect
+	github.com/jackc/pgx/v5 v5.4.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect

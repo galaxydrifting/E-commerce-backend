@@ -1,14 +1,14 @@
 package migrations
 
 import (
+	"e-commerce/models"
 	"log"
 
-	"e-commerce/configs"
-	"e-commerce/models"
+	"gorm.io/gorm"
 )
 
-func Migrate() {
-	err := configs.DB.AutoMigrate(&models.User{})
+func Migrate(db *gorm.DB) {
+	err := db.AutoMigrate(&models.User{})
 	if err != nil {
 		log.Fatal("Failed to migrate database: ", err)
 	}
