@@ -97,14 +97,14 @@ func (c *AuthController) Login(ctx *gin.Context) {
 // @Failure 401 {object} map[string]string "User not authenticated"
 // @Router /auth/logout [post]
 func (c *AuthController) Logout(ctx *gin.Context) {
-	// Get current user from context
 	user, exists := ctx.Get("user")
 	if !exists {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
 	}
 
-	if err := c.authService.Logout(user.(*models.User).ID); err != nil {
+	currentUser := user.(models.User)
+	if err := c.authService.Logout(currentUser.ID); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to logout"})
 		return
 	}
@@ -154,7 +154,8 @@ func (c *AuthController) UpdateProfile(ctx *gin.Context) {
 		return
 	}
 
-	updatedUser, err := c.authService.UpdateProfile(user.(*models.User).ID, req.Name, req.Email)
+	currentUser := user.(models.User)
+	updatedUser, err := c.authService.UpdateProfile(currentUser.ID, req.Name, req.Email)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
