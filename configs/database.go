@@ -12,10 +12,17 @@ import (
 
 var DB *gorm.DB
 
-func ConnectDB() {
-	err := godotenv.Load()
+func loadEnv(envFile string) error {
+	if envFile == "" {
+		envFile = ".env"
+	}
+	return godotenv.Load(envFile)
+}
+
+func ConnectDB(envFile string) {
+	err := loadEnv(envFile)
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("Error loading env file: ", err)
 	}
 
 	dbHost := os.Getenv("DB_HOST")
@@ -33,5 +40,9 @@ func ConnectDB() {
 	}
 
 	DB = db
-	log.Println("Connected Successfully to Database")
+	log.Printf("Connected Successfully to Database: %s\n", dbName)
+}
+
+func GetDB() *gorm.DB {
+	return DB
 }

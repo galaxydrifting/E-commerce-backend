@@ -2,15 +2,21 @@ package controllers
 
 import (
 	"net/http"
-	"os"
-	"time"
 
-	"e-commerce/configs"
-	"e-commerce/models"
+	"e-commerce/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
+
+type AuthController struct {
+	authService *services.AuthService
+}
+
+func NewAuthController(authService *services.AuthService) *AuthController {
+	return &AuthController{
+		authService: authService,
+	}
+}
 
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email" example:"user@example.com"`
@@ -32,26 +38,19 @@ type RegisterRequest struct {
 // @Success 201 {object} map[string]string "User created successfully"
 // @Failure 400 {object} map[string]string "Invalid input or Email already exists"
 // @Router /auth/register [post]
-func Register(c *gin.Context) {
+func (c *AuthController) Register(ctx *gin.Context) {
 	var req RegisterRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	user := models.User{
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: req.Password,
-	}
-
-	result := configs.DB.Create(&user)
-	if result.Error != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
+	if err := c.authService.Register(req.Name, req.Email, req.Password); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
+	ctx.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
 }
 
 // @Summary Login user
@@ -64,38 +63,21 @@ func Register(c *gin.Context) {
 // @Failure 400 {object} map[string]string "Invalid input"
 // @Failure 401 {object} map[string]string "Invalid credentials"
 // @Router /auth/login [post]
-func Login(c *gin.Context) {
+func (c *AuthController) Login(ctx *gin.Context) {
 	var req LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	var user models.User
-	if err := configs.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
-		return
-	}
-
-	if err := user.ComparePassword(req.Password); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
-		return
-	}
-
-	// Generate JWT Token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID,
-		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(),
-	})
-
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	user, token, err := c.authService.Login(req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"token": tokenString,
+	ctx.JSON(http.StatusOK, gin.H{
+		"token": token,
 		"user":  user,
 	})
 }

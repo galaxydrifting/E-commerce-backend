@@ -1,22 +1,18 @@
 package models
 
 import (
-	"time"
-
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type User struct {
-	ID        uint      `gorm:"primarykey" json:"id"`
-	Email     string    `gorm:"unique;not null" json:"email"`
-	Password  string    `gorm:"not null" json:"-"`
-	Name      string    `gorm:"not null" json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	gorm.Model
+	Name     string `json:"name"`
+	Email    string `json:"email" gorm:"unique"`
+	Password string `json:"password,omitempty"`
 }
 
-func (u *User) BeforeCreate(tx *gorm.DB) error {
+func (u *User) HashPassword() error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -25,6 +21,6 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-func (u *User) ComparePassword(password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+func (u *User) ComparePassword(plainPassword string) error {
+	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plainPassword))
 }

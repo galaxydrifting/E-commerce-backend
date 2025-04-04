@@ -1,48 +1,59 @@
-// @title           E-Commerce API
+// @title           E-commerce API
 // @version         1.0
-// @description     This is a sample e-commerce server.
+// @description     A simple e-commerce API.
 // @termsOfService  http://swagger.io/terms/
-
-// @contact.name   API Support
-// @contact.url    http://www.swagger.io/support
-// @contact.email  support@swagger.io
-
-// @license.name  Apache 2.0
-// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
 // @host      localhost:8080
 // @BasePath  /api/v1
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
 package main
 
 import (
-	"e-commerce/configs"
-	"e-commerce/migrations"
-	"e-commerce/routes"
+	"log"
+	"os"
 
-	_ "e-commerce/docs" // swagger docs
+	"e-commerce/configs"
+	"e-commerce/controllers"
+	"e-commerce/docs"
+	"e-commerce/repository"
+	"e-commerce/routes"
+	"e-commerce/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
-	// Initialize database
-	configs.ConnectDB()
+	// Load environment variables
+	envFile := os.Getenv("ENV_FILE")
+	if envFile == "" {
+		envFile = ".env"
+	}
+	if err := godotenv.Load(envFile); err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-	// Run migrations
-	migrations.Migrate()
+	configs.ConnectDB(envFile)
 
-	// Setup router
 	r := gin.Default()
 
-	// Swagger route
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// Initialize repositories and services
+	userRepo := repository.NewGormUserRepository(configs.GetDB())
+	authService := services.NewAuthService(userRepo)
+	authController := controllers.NewAuthController(authService)
 
 	// Setup routes
-	routes.SetupAuthRoutes(r)
+	routes.SetupAuthRoutes(r, authController)
 
-	// Run the server
+	// Swagger documentation route
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	r.Run(":8080")
 }
