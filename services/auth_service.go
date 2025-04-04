@@ -22,13 +22,18 @@ func NewAuthService(userRepo repository.UserRepository) *AuthService {
 }
 
 func (s *AuthService) Register(name, email, password string) error {
-	user := models.User{
+	user := &models.User{
 		Name:     name,
 		Email:    email,
 		Password: password,
 	}
 
-	return s.userRepo.Create(&user)
+	// 在創建用戶前先進行密碼雜湊
+	if err := user.HashPassword(); err != nil {
+		return err
+	}
+
+	return s.userRepo.Create(user)
 }
 
 func (s *AuthService) Login(email, password string) (*models.User, string, error) {

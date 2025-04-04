@@ -19,6 +19,7 @@ import (
 	"e-commerce/configs"
 	"e-commerce/controllers"
 	"e-commerce/docs"
+	"e-commerce/migrations"
 	"e-commerce/repository"
 	"e-commerce/routes"
 	"e-commerce/services"
@@ -40,6 +41,9 @@ func main() {
 	}
 
 	configs.ConnectDB(envFile)
+
+	// Run database migrations
+	migrations.Migrate()
 
 	r := gin.Default()
 
