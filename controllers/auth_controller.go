@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 
+	"e-commerce/models"
 	"e-commerce/services"
 
 	"github.com/gin-gonic/gin"
@@ -27,6 +28,11 @@ type RegisterRequest struct {
 	Name     string `json:"name" binding:"required" example:"John Doe"`
 	Email    string `json:"email" binding:"required,email" example:"user@example.com"`
 	Password string `json:"password" binding:"required,min=6" example:"password123"`
+}
+
+type UpdateProfileRequest struct {
+	Name  string `json:"name" binding:"required" example:"John Doe"`
+	Email string `json:"email" binding:"required,email" example:"user@example.com"`
 }
 
 // @Summary Register a new user
@@ -80,4 +86,79 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		"token": token,
 		"user":  user,
 	})
+}
+
+// @Summary Logout user
+// @Description Logout the current user and invalidate their token
+// @Tags auth
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} map[string]string "Logout successful"
+// @Failure 401 {object} map[string]string "User not authenticated"
+// @Router /auth/logout [post]
+func (c *AuthController) Logout(ctx *gin.Context) {
+	// Get current user from context
+	user, exists := ctx.Get("user")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	if err := c.authService.Logout(user.(*models.User).ID); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to logout"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
+}
+
+// @Summary Get user profile
+// @Description Get the current user's profile information
+// @Tags auth
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} models.User "User profile"
+// @Failure 401 {object} map[string]string "User not authenticated"
+// @Router /auth/profile [get]
+func (c *AuthController) GetProfile(ctx *gin.Context) {
+	user, exists := ctx.Get("user")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
+}
+
+// @Summary Update user profile
+// @Description Update the current user's profile information
+// @Tags auth
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body UpdateProfileRequest true "Profile update details"
+// @Success 200 {object} models.User "Updated user profile"
+// @Failure 400 {object} map[string]string "Invalid input"
+// @Failure 401 {object} map[string]string "User not authenticated"
+// @Router /auth/profile [put]
+func (c *AuthController) UpdateProfile(ctx *gin.Context) {
+	user, exists := ctx.Get("user")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	var req UpdateProfileRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	updatedUser, err := c.authService.UpdateProfile(user.(*models.User).ID, req.Name, req.Email)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, updatedUser)
 }

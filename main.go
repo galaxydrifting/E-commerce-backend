@@ -1,7 +1,14 @@
-// @title           E-commerce API
+// @title           E-Commerce API
 // @version         1.0
 // @description     A simple e-commerce API.
 // @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
 // @host      localhost:8080
 // @BasePath  /api/v1
@@ -9,6 +16,7 @@
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
+// @description Enter the token with the `Bearer: ` prefix, e.g. "Bearer abcde12345".
 
 package main
 
@@ -48,8 +56,8 @@ func main() {
 
 	r := gin.Default()
 
-	// Setup routes using the container
-	routes.SetupAuthRoutes(r, container.AuthController)
+	// Setup routes using the container and middleware
+	routes.SetupAuthRoutes(r, container.AuthController, container.AuthMiddleware)
 
 	// Swagger documentation route
 	docs.SwaggerInfo.BasePath = "/api/v1"

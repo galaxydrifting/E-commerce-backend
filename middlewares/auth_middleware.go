@@ -3,6 +3,7 @@ package middlewares
 import (
 	"e-commerce/configs"
 	"e-commerce/models"
+	"e-commerce/services"
 	"net/http"
 	"os"
 	"strings"
@@ -12,11 +13,15 @@ import (
 )
 
 type AuthMiddleware struct {
-	db *configs.Database
+	db          *configs.Database
+	authService *services.AuthService
 }
 
-func NewAuthMiddleware(db *configs.Database) *AuthMiddleware {
-	return &AuthMiddleware{db: db}
+func NewAuthMiddleware(db *configs.Database, authService *services.AuthService) *AuthMiddleware {
+	return &AuthMiddleware{
+		db:          db,
+		authService: authService,
+	}
 }
 
 func (am *AuthMiddleware) Handle() gin.HandlerFunc {
@@ -29,6 +34,7 @@ func (am *AuthMiddleware) Handle() gin.HandlerFunc {
 		}
 
 		tokenString := strings.Replace(authHeader, "Bearer ", "", 1)
+
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
