@@ -186,9 +186,9 @@ func TestUpdateProfile(t *testing.T) {
 	// Create test users
 	testUser := &models.User{
 		ID:        1,
-		Name:     "Test User",
-		Email:    "test@example.com",
-		Password: "password123",
+		Name:      "Test User",
+		Email:     "test@example.com",
+		Password:  "password123",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -196,9 +196,9 @@ func TestUpdateProfile(t *testing.T) {
 
 	anotherUser := &models.User{
 		ID:        2,
-		Name:     "Another User",
-		Email:    "another@example.com",
-		Password: "password123",
+		Name:      "Another User",
+		Email:     "another@example.com",
+		Password:  "password123",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
